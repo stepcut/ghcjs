@@ -66,6 +66,8 @@ import qualified Gen2.Utils as U
 import           Text.PrettyPrint.Leijen.Text (renderPretty, displayT)
 import qualified Crypto.Hash.SHA256 as SHA256
 
+import qualified Debug.Trace
+
 type LinkedUnit = (JStat, [ClosureInfo], [StaticInfo])
 
 -- | collect global objects (data / CAFs). rename them and add them to the table
@@ -189,6 +191,12 @@ packStrings settings dflags cstate code =
       newStringTable :: StringTable
       newStringTable = StringTable newTableIdents newOffsetsMap newIdentsMap
 
+      newOffsetsInverted :: HashMap (Int, Int) ByteString
+      newOffsetsInverted = HM.fromList .
+                           map (\(x,y) -> (y,x)) .
+                           HM.toList $
+                           newOffsetsMap
+
       replaceSymbol :: Text -> Maybe JVal
       replaceSymbol t =
         let f (_, Left i)  = JVar (TxtI $ newTableIdents ! i)
@@ -208,14 +216,17 @@ packStrings settings dflags cstate code =
                     [])
 
       rewriteValsE :: JExpr -> JExpr
-      rewriteValsE e = e & valsE %~ rewriteVals
+      rewriteValsE (ApplExpr e xs)
+        | Just t <- appMatchStringLit e xs = ValExpr (JStr t)
+      rewriteValsE (ValExpr v) = ValExpr (rewriteVals v)
+      rewriteValsE e = e & exprsE %~ rewriteValsE
 
       rewriteVals :: JVal -> JVal
       rewriteVals (JVar (TxtI t))
         | Just v <- replaceSymbol t = v
       rewriteVals (JList es) = JList (map rewriteValsE es)
       rewriteVals (JHash m) = JHash (fmap rewriteValsE m)
-      rewriteVals (JFunc args body) = JFunc args (body & valsS %~ rewriteVals)
+      rewriteVals (JFunc args body) = JFunc args (body & exprsS %~ rewriteValsE)
       rewriteVals v = v
 
       rewriteStat :: JStat -> JStat
@@ -270,6 +281,15 @@ packStrings settings dflags cstate code =
       rewriteAppsV (JHash m)  = JHash (fmap rewriteApps m)
       rewriteAppsV (JFunc args st) = JFunc args (st & exprsS %~ rewriteApps)
       rewriteAppsV x               = x
+
+      appMatchStringLit :: JExpr -> [JExpr] -> Maybe Text
+      appMatchStringLit (ValExpr (JVar (TxtI "h$decodeUtf8z")))
+                        [ValExpr (JVar (TxtI x)), ValExpr (JVar (TxtI y))]
+       | Just (_, Left i)  <- HM.lookup x newIdentsMap
+       , Just (_, Right j) <- HM.lookup y newIdentsMap
+       , Just bs        <- HM.lookup (i,j) newOffsetsInverted =
+         U.decodeModifiedUTF8 bs
+      appMatchStringLit _ _ = Nothing
 
       rewriteStatic :: StaticInfo -> Maybe StaticInfo
       rewriteStatic (StaticInfo i
@@ -748,27 +768,6 @@ loadBase file = DB.runGet (getBase file) <$> BL.readFile file
 
 ----------------------------
 
-{-# INLINE exprsS #-}
-exprsS :: Traversal' JStat JExpr
-exprsS f d@(DeclStat {})      = pure d
-exprsS f (ReturnStat e)       = ReturnStat     <$> f e
-exprsS f (IfStat e s1 s2)     = IfStat         <$> f e <*> exprsS f s1 <*> exprsS f s2
-exprsS f (WhileStat b e s)    = WhileStat b    <$> f e <*> exprsS f s
-exprsS f (ForInStat b i e s)  = ForInStat b    <$> pure i <*> f e <*> exprsS f s
-exprsS f (SwitchStat e xs s)  = SwitchStat     <$> f e <*> (traverse . traverseCase) f xs <*> exprsS f s
-  where traverseCase g (e,s) = (,) <$> g e <*> exprsS g s
-exprsS f (TryStat s1 i s2 s3) = TryStat        <$> exprsS f s1 <*> pure i <*> exprsS f s2 <*> exprsS f s3
-exprsS f (BlockStat xs)       = BlockStat   <$> (traverse . exprsS) f xs
-exprsS f (ApplStat e es)      = ApplStat    <$> f e <*> traverse f es
-exprsS f (UOpStat op e)       = UOpStat op  <$> f e
-exprsS f (AssignStat e1 e2)   = AssignStat  <$> f e1 <*> f e2
-exprsS _ (UnsatBlock{})       = error "exprsS: UnsatBlock"
-exprsS _ (AntiStat{})         = error "exprsS: AntiStat"
-exprsS f (LabelStat l s)      = LabelStat l <$> exprsS f s
-exprsS _ b@(BreakStat{})      = pure b
-exprsS _ c@(ContinueStat{})   = pure c
-
-----------------------------
 
 {-# INLINE identsS #-}
 identsS :: Traversal' JStat Ident
@@ -848,6 +847,38 @@ valsE f (ApplExpr e es)     = ApplExpr    <$> valsE f e <*> (traverse . valsE) f
 valsE _ (UnsatExpr{})       = panic "valsE: UnsatExpr"
 valsE _ (AntiExpr{})        = panic "valsE: AntiExpr"
 
+{-# INLINE exprsS #-}
+exprsS :: Traversal' JStat JExpr
+exprsS _ d@(DeclStat _i)      = pure d -- DeclStat       <$> f i
+exprsS f (ReturnStat e)       = ReturnStat     <$> f e
+exprsS f (IfStat e s1 s2)     = IfStat         <$> f e <*> exprsS f s1 <*> exprsS f s2
+exprsS f (WhileStat b e s)    = WhileStat b    <$> f e <*> exprsS f s
+exprsS f (ForInStat b i e s)  = ForInStat b    <$> pure i <*> f e <*> exprsS f s
+exprsS f (SwitchStat e xs s)  = SwitchStat     <$> f e <*> (traverse . traverseCase) f xs <*> exprsS f s
+  where traverseCase g (e,s) = (,) <$> g e <*> exprsS g s
+exprsS f (TryStat s1 i s2 s3) = TryStat        <$> exprsS f s1 <*> pure i <*> exprsS f s2 <*> exprsS f s3
+exprsS f (BlockStat xs)       = BlockStat   <$> (traverse . exprsS) f xs
+exprsS f (ApplStat e es)      = ApplStat    <$> f e <*> traverse f es
+exprsS f (UOpStat op e)       = UOpStat op  <$> f e
+exprsS f (AssignStat e1 e2)   = AssignStat  <$> f e1 <*> f e2
+exprsS _ (UnsatBlock{})       = panic "exprsS: UnsatBlock"
+exprsS _ (AntiStat{})         = panic "exprsS: AntiStat"
+exprsS f (LabelStat l s)      = LabelStat l <$> exprsS f s
+exprsS _ b@(BreakStat{})      = pure b
+exprsS _ c@(ContinueStat{})   = pure c
+
+-- doesn't traverse through values
+{-# INLINE exprsE #-}
+exprsE :: Traversal' JExpr JExpr
+exprsE f ve@(ValExpr v)      = pure ve
+exprsE f (SelExpr e i)       = SelExpr     <$> f e <*> pure i
+exprsE f (IdxExpr e1 e2)     = IdxExpr     <$> f e1 <*> f e2
+exprsE f (InfixExpr s e1 e2) = InfixExpr s <$> f e1 <*> f e2
+exprsE f (UOpExpr o e)       = UOpExpr o   <$> f e
+exprsE f (IfExpr e1 e2 e3)   = IfExpr      <$> f e1 <*> f e2 <*> f e3
+exprsE f (ApplExpr e es)     = ApplExpr    <$> f e <*> traverse f es
+exprsE _ (UnsatExpr{})       = panic "exprsE: UnsatExpr"
+exprsE _ (AntiExpr{})        = panic "exprsE: AntiExpr"
 
 staticInfoArgs :: Traversal' StaticInfo StaticArg
 staticInfoArgs f (StaticInfo si sv sa) =
