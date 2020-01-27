@@ -829,3 +829,19 @@ diff -X ../utils/updatePatches.excludes -Nru upstream/pkg/base/System/Timeout.hs
      | rtsSupportsBoundThreads = do
          -- In the threaded RTS, we use the Timer Manager to delay the
          -- (fairly expensive) 'forkIO' call until the timeout has expired.
+diff --git a/libraries/base/Data/Maybe.hs b/libraries/base/Data/Maybe.hs
+index 5f5d5ac910..83e880d3ab 100644
+--- a/libraries/base/Data/Maybe.hs
++++ b/libraries/base/Data/Maybe.hs
+@@ -143,8 +143,8 @@ isNothing _       = False
+ -- >>> 2 * (fromJust Nothing)
+ -- *** Exception: Maybe.fromJust: Nothing
+ --
+-fromJust          :: Maybe a -> a
+-fromJust Nothing  = errorWithoutStackTrace "Maybe.fromJust: Nothing" -- yuck
++fromJust          :: HasCallStack => Maybe a -> a
++fromJust Nothing  = error "Maybe.fromJust: Nothing" -- yuck
+ fromJust (Just x) = x
+
+ -- | The 'fromMaybe' function takes a default value and and 'Maybe'
+
