@@ -808,32 +808,19 @@ diff -X ../utils/updatePatches.excludes -Nru upstream/pkg/base/System/Posix/Inte
  the OS.
  -}
 -
-diff -X ../utils/updatePatches.excludes -Nru upstream/pkg/base/System/Timeout.hs boot/pkg/base/System/Timeout.hs
---- upstream/pkg/base/System/Timeout.hs	2019-05-07 22:52:33.000000000 -0700
-+++ boot/pkg/base/System/Timeout.hs	2019-05-07 22:52:34.193760861 -0700
-@@ -18,7 +18,7 @@
- 
- module System.Timeout ( timeout ) where
- 
--#if !defined(mingw32_HOST_OS)
-+#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
- import Control.Monad
- import GHC.Event           (getSystemTimerManager,
-                             registerTimeout, unregisterTimeout)
-@@ -85,7 +85,7 @@
- timeout n f
-     | n <  0    = fmap Just f
-     | n == 0    = return Nothing
--#if !defined(mingw32_HOST_OS)
-+#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
-     | rtsSupportsBoundThreads = do
-         -- In the threaded RTS, we use the Timer Manager to delay the
-         -- (fairly expensive) 'forkIO' call until the timeout has expired.
 diff --git a/libraries/base/Data/Maybe.hs b/libraries/base/Data/Maybe.hs
-index 5f5d5ac910..83e880d3ab 100644
+index 5f5d5ac910..0bb52199b6 100644
 --- a/libraries/base/Data/Maybe.hs
 +++ b/libraries/base/Data/Maybe.hs
-@@ -143,8 +143,8 @@ isNothing _       = False
+@@ -32,6 +32,7 @@ module Data.Maybe
+    ) where
+
+ import GHC.Base
++import GHC.Stack
+
+ -- $setup
+ -- Allow the use of some Prelude functions in doctests.
+@@ -143,8 +144,8 @@ isNothing _       = False
  -- >>> 2 * (fromJust Nothing)
  -- *** Exception: Maybe.fromJust: Nothing
  --
