@@ -1,6 +1,7 @@
 [submodule "ghc"]
 	path = ghc
-	url = https://github.com/ghcjs/ghc.git
+	url = https://github.com/obsidiansystems/ghc.git
+        branch = splices-8.10.4
 [submodule "lib/ghcjs-node"]
 	path = lib/ghcjs-node
 	url = https://github.com/ghcjs/ghcjs-node.git
