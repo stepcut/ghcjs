@@ -36,4 +36,4 @@ cabal.sandbox.config
 .stack-work/
 .cabal-sandbox/
 /tmp/
-
+*.org
