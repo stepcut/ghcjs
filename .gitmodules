@@ -1,7 +1,7 @@
 [submodule "ghc"]
 	path = ghc
-	url = https://gitlab.haskell.org/obsidiansystems/ghc.git
-        branch = dn-8.10.7-splices-plugin
+	url = https://github.com/ghcjs/ghc.git
+        branch = ghc-8.10.7
 [submodule "lib/ghcjs-node"]
 	path = lib/ghcjs-node
 	url = https://github.com/ghcjs/ghcjs-node.git
