@@ -1,6 +1,0 @@
-[submodule "ghc"]
-	path = ghc
-	url = https://gitlab.haskell.org/obsidiansystems/ghc.git
-[submodule "lib/ghcjs-node"]
-	path = lib/ghcjs-node
-	url = https://github.com/ghcjs/ghcjs-node.git
