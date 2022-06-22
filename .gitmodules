@@ -1,6 +1,8 @@
 [submodule "ghc"]
 	path = ghc
+	branch = ghcjs-ghc-8.10.7
 	url = https://gitlab.haskell.org/obsidiansystems/ghc.git
+
 [submodule "ghcjs-node"]
 	path = ghcjs-node
 	url = https://github.com/ghcjs/ghcjs-node.git
