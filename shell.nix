@@ -9,8 +9,8 @@ mkShell {
     pkgs.emscripten
     pkgs.python3
     pkgs.autoreconfHook
-    pkgs.haskellPackages.happy_1_19_12 # has to be 1.19
-    pkgs.haskellPackages.alex
+    pkgs.haskell.packages.ghc8107.happy_1_19_12 # has to be happy 1.19
+    pkgs.haskell.packages.ghc8107.alex
   ];
 }
 
