@@ -1,6 +1,6 @@
 diff -X ../utils/updatePatches.excludes -Nru upstream/pkg/ghc-prim/Setup.hs boot/pkg/ghc-prim/Setup.hs
---- upstream/pkg/ghc-prim/Setup.hs	2021-06-10 11:42:32.592166900 +0200
-+++ boot/pkg/ghc-prim/Setup.hs	2021-06-10 14:36:29.340000000 +0200
+--- upstream/pkg/ghc-prim/Setup.hs	2022-06-21 22:23:32.412440800 +0000
++++ boot/pkg/ghc-prim/Setup.hs	2022-06-21 22:58:26.072440800 +0000
 @@ -11,6 +11,9 @@
  import Distribution.Simple.LocalBuildInfo
  import Distribution.Simple.Program
