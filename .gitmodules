@@ -6,3 +6,6 @@
 [submodule "ghcjs-node"]
 	path = ghcjs-node
 	url = https://github.com/ghcjs/ghcjs-node.git
+[submodule "ghc-external-splices-plugin"]
+	path = ghc-external-splices-plugin
+	url = git@github.com:obsidiansystems/ghc-external-splices-plugin.git

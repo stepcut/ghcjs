@@ -137,6 +137,11 @@ Library
                      Compiler.JMacro.Util,
                      Compiler.JMacro.Combinators,
                      Compiler.JMacro.Symbols,
+                     Splices.Data
+                     Splices.Plugin
+                     Splices.Conversions
+                     Splices.Serialise.Class
+                     Splices.Serialise.Instances
                      GHCJS
     other-modules: Paths_ghcjs
     autogen-modules: Paths_ghcjs
@@ -327,6 +332,8 @@ Library
         ghc/compiler/typecheck
         ghc/compiler/types
         ghc/compiler/utils
+
+        ghc-external-splices-plugin/src/
 
     -- we use an explicit Prelude
     Default-Extensions:
@@ -930,7 +937,7 @@ Executable private-ghcjs-hsc2hs
     if flag(compiler-only)
       Buildable:      False
     Default-Language: Haskell2010
-    Hs-Source-Dirs: ghc/utils/hsc2hs
+    Hs-Source-Dirs: ghc/utils/hsc2hs/src
     Cpp-Options: -DPaths_hsc2hs=Paths_ghcjs
     Main-Is: Main.hs
     Other-Modules:

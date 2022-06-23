@@ -1,0 +1,14 @@
+#+TITLE: Notes
+
+* Submodules
+
+git submodule --init --recursive # when you want all the stuff
+
+git submodule update --remote # for when you change the branch or whatever
+
+
+* GHCJS
+
+go to ghc, do ./boot, ./configure
+
+go to .. do ./utils/makePackage.hs if you get prompted to apply patched, you have to check :(
