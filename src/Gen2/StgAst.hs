@@ -105,8 +105,7 @@ deriving instance Show StgTopBinding
 deriving instance Show StgRhs
 deriving instance Show StgOp
 deriving instance Show NoExtField
-deriving instance Show StgTickish
-deriving instance Show CoreTickish
+deriving instance Show a => Show (Tickish a)
 --
 instance Show Coercion where show co = showPpr hackPprDflags co
 deriving instance Show a => Show (Expr a)
