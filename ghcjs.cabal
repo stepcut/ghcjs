@@ -48,8 +48,6 @@ extra-source-files:
                 ghc/driver/utils/getLocation.h
                 utils/wrapper/getline.h
 
-                ghc/compiler/ghc-external-splices-plugin/src/
-
 
 source-repository head
   type:     git
@@ -140,7 +138,14 @@ Library
                      Compiler.JMacro.Combinators,
                      Compiler.JMacro.Symbols,
                      GHCJS
-    other-modules: Paths_ghcjs
+    other-modules:
+        Paths_ghcjs
+        Splices.Plugin
+        Splices.Data
+        Splices.Conversions
+        Splices.Serialise.Class
+        Splices.Serialise.Instances
+
     autogen-modules: Paths_ghcjs
 
     if os(windows)
@@ -152,7 +157,10 @@ Library
 
     -- from ghcjs-th package
     -- this should be a separate internal library
-    hs-source-dirs: lib/ghcjs-th
+    hs-source-dirs:
+        lib/ghcjs-th
+        ghc/compiler/ghc-external-splices-plugin/src/
+
     exposed-modules: GHCJS.Prim.TH.Eval
                      GHCJS.Prim.TH.Types
     -- end ghcjs-th package
