@@ -48,6 +48,8 @@ extra-source-files:
                 ghc/driver/utils/getLocation.h
                 utils/wrapper/getline.h
 
+                ghc/compiler/ghc-external-splices-plugin/src/
+
 
 source-repository head
   type:     git
