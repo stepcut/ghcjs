@@ -54,9 +54,9 @@ optimize :: JStat -> JStat
 #ifdef DISABLE_OPTIMIZER
 optimize = id
 #else
-optimize = id
+-- optimize = id
 -- fixme
--- optimize = renameLocalVars . removeDeadVars . dataflow
+optimize = renameLocalVars . removeDeadVars . dataflow
 #endif
 
 renameLocalVars :: JStat -> JStat
